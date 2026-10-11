@@ -1,0 +1,36 @@
+{{define "content"}}
+{{with .Data}}
+<section class="intro">
+  <h1>{{.Image.Rel}}</h1>
+  <p>Source : <strong>{{bytes .Image.Bytes}}</strong>.
+  {{with .Best}}Meilleure compression à 800 px : <strong>{{.Format}}</strong>, {{bytes .Bytes}} ({{pct .Ratio}} de la source).{{end}}
+  Chaque vignette est produite à la volée par proxykenny ; le temps affiché est le temps de traitement côté serveur.</p>
+  <p class="actions">
+    <a class="btn" href="/play?f={{.Image.Rel}}">Ouvrir dans le bac à sable</a>
+    <a class="btn ghost" href="/image?f={{.Image.Rel}}&amp;refresh=1">Relancer les mesures</a>
+    <a class="btn ghost" href="/bench?f={{.Image.Rel}}">Banc d'essai</a>
+  </p>
+</section>
+<div class="grid results">
+  {{range .Results}}
+  <figure class="card">
+    {{if .Err}}<div class="err">{{.Err}}</div>{{else}}<a href="{{.URL}}" target="_blank" rel="noopener"><img loading="lazy" src="{{.URL}}" alt="{{.Preset.Name}}"></a>{{end}}
+    <figcaption>
+      <strong>{{.Preset.Name}}</strong>
+      <code>{{.Opts}}</code>
+      {{if not .Err}}
+      <div class="badges">
+        <span class="b fmt">{{.Format}}</span>
+        <span class="b">{{.Size}}</span>
+        <span class="b">{{bytes .Bytes}}</span>
+        <span class="b {{if lt .Ratio 0.25}}good{{end}}">{{pct .Ratio}} de la source</span>
+        <span class="b time">{{ms .ProcMs}}</span>
+        {{if ge .Faces 0}}<span class="b face">{{.Faces}} visage{{if gt .Faces 1}}s{{end}}</span>{{end}}
+      </div>
+      {{end}}
+    </figcaption>
+  </figure>
+  {{end}}
+</div>
+{{end}}
+{{end}}

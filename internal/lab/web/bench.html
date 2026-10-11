@@ -1,0 +1,81 @@
+{{define "content"}}
+{{with .Data}}
+<section class="intro"><h1>Bancs d'essai</h1>
+<p>On envoie des requêtes en boucle à proxykenny pendant quelques secondes et on mesure combien d'images il produit par seconde et en combien de temps.</p></section>
+
+<div class="explain">
+  <h2>Que veut dire « clients simultanés » ?</h2>
+  <p>C'est le nombre de requêtes <strong>en cours en même temps</strong>, comme autant de visiteurs qui chargent une image au même instant.</p>
+  <ul>
+    <li><strong>1 client</strong> : une requête après l'autre → temps de traitement « pur » d'une image, sans attente.</li>
+    <li><strong>4 à 8 clients</strong> : le serveur a 3 workers ; à partir d'environ 3 clients il travaille à plein régime → <strong>débit maximal</strong>.</li>
+    <li><strong>16 à 64 clients</strong> : affluence ; les requêtes font la queue, le débit plafonne et le temps de réponse augmente — on vérifie que le serveur tient sans s'effondrer.</li>
+  </ul>
+</div>
+
+{{if .Error}}<p class="flash">{{.Error}}</p>{{end}}
+
+<section class="panel">
+  <h2>Campagne complète <span class="tag">recommandé</span></h2>
+  <p>{{.Steps}} tests enchaînés automatiquement, en faisant varier <strong>un seul paramètre à la fois</strong> :
+     la taille de sortie (320 → 2400 px), le format (JPEG, WebP, AVIF, JPEG XL), l'opération (redimensionner, recadrage smart,
+     visage, avatar, floutage) et le nombre de clients (1 → 32). Résultats comparés avec des barres et des conclusions.</p>
+  <form class="opts bench" method="post" action="/campaign">
+    <label>Image <select name="f">{{range .Images}}<option>{{.Rel}}</option>{{end}}</select></label>
+    <label>Durée de chaque test
+      <select name="d"><option value="3">3 s (≈ 1 min 10)</option><option value="5" selected>5 s (≈ 1 min 50)</option><option value="8">8 s (≈ 2 min 50)</option></select>
+    </label>
+    <button type="submit">Lancer la campagne</button>
+  </form>
+  {{if .Campaigns}}
+  <ul class="camps">
+    {{range .Campaigns}}
+    <li><a href="/campaign?id={{.ID}}">{{since .Started}} — {{.Image}}</a>
+      {{if .Running}}<span class="b">en cours {{.Percent}} %</span>{{else if .Err}}<span class="b bad">{{.Err}}</span>{{else}}<span class="b good">terminée</span>{{end}}</li>
+    {{end}}
+  </ul>
+  {{end}}
+</section>
+
+<section class="panel">
+  <h2>Test unique</h2>
+  <form class="opts bench" method="post" action="/bench" id="benchform">
+    <label>Image <select name="f">{{range .Images}}<option>{{.Rel}}</option>{{end}}</select></label>
+    <label>Scénario <select name="preset">{{range presets}}<option value="{{.ID}}">{{.Name}}</option>{{end}}</select></label>
+    <label>Clients simultanés
+      <select name="c"><option>1</option><option>4</option><option selected>8</option><option>16</option><option>32</option><option>64</option></select>
+    </label>
+    <label>Durée
+      <select name="d"><option value="5">5 s</option><option value="10" selected>10 s</option><option value="20">20 s</option><option value="30">30 s</option></select>
+    </label>
+    <button type="submit" id="benchbtn">Lancer</button>
+  </form>
+  {{with .Last}}
+  <div class="kpis">
+    <div><span>Images par seconde</span><strong>{{printf "%.0f" .RPS}}</strong><em>débit</em></div>
+    <div><span>Temps médian</span><strong>{{msf .P50}}</strong><em>ms par image (p50)</em></div>
+    <div><span>95 % des images</span><strong>{{msf .P95}}</strong><em>ms ou moins (p95)</em></div>
+    <div><span>Taux de réussite</span><strong>{{pct .SuccessRate}}</strong><em>{{.OK}} / {{.Total}} requêtes</em></div>
+  </div>
+  {{end}}
+</section>
+
+{{if .History}}
+<section class="panel">
+<h2>Historique des tests</h2>
+<div class="tablewrap">
+<table>
+  <thead><tr><th>Heure</th><th>Scénario</th><th>Clients</th><th>Durée</th><th>Images/s</th><th>Médiane</th><th>p95</th><th>Réussite</th><th>Codes HTTP</th></tr></thead>
+  <tbody>
+  {{range .History}}
+  <tr><td>{{since .When}}</td><td>{{.Preset.Name}}</td><td>{{.Concurrency}}</td><td>{{.Duration}}</td>
+      <td><strong>{{printf "%.0f" .RPS}}</strong></td><td>{{msf .P50}} ms</td><td>{{msf .P95}} ms</td><td>{{pct .SuccessRate}}</td>
+      <td>{{range $c, $n := .Codes}}<span class="b {{if eq $c 200}}good{{else}}bad{{end}}">{{if eq $c 0}}réseau{{else}}{{$c}}{{end}} × {{$n}}</span> {{end}}</td></tr>
+  {{end}}
+  </tbody>
+</table>
+</div>
+</section>
+{{end}}
+{{end}}
+{{end}}

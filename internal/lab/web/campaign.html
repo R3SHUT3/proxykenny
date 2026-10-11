@@ -1,0 +1,47 @@
+{{define "content"}}
+{{with .Data}}
+<section class="intro">
+  <h1>Campagne de tests — {{.Image}}</h1>
+  <p>Chaque groupe fait varier <strong>un seul paramètre</strong> ; les autres restent fixes (800 px, WebP, redimensionnement, 4 clients).
+     Chaque test dure {{secs .StepDur}}. Barres bleues : images par seconde (plus long = mieux) ; barres orange : temps par image (plus court = mieux).</p>
+</section>
+
+{{if .Running}}
+<progress class="progress" max="100" value="{{.Percent}}"></progress>
+<p class="hint">Test {{.Done}} / {{.Total}} en cours… encore environ {{secs .ETA}}. La page se met à jour toute seule.</p>
+{{else if .Err}}<p class="flash">{{.Err}}</p>
+{{else}}<p class="hint">Terminée le {{since .Ended}} — {{.Total}} tests.</p>{{end}}
+
+{{if .Summary}}
+<section class="panel conclusions">
+  <h2>Ce qu'il faut retenir</h2>
+  <ul>{{range .Summary}}<li>{{.}}</li>{{end}}</ul>
+</section>
+{{end}}
+
+{{range .Groups}}
+<section class="panel">
+  <h2>{{.Name}}</h2>
+  <div class="tablewrap">
+  <table class="camp">
+    <thead><tr><th>Test</th><th>Images par seconde</th><th>Temps médian par image</th><th>p95</th><th>Taille moyenne</th><th>Réussite</th></tr></thead>
+    <tbody>
+    {{range .Rows}}
+    <tr {{if .IsCurrent}}class="current"{{end}}>
+      <td><strong>{{.Step.Label}}</strong>{{if .IsBest}} <span class="b good">meilleur débit</span>{{end}}<br><code>{{.Step.Opts}}</code> · {{.Step.Conc}} client(s)</td>
+      {{if .R}}
+      <td class="barcol"><meter min="0" max="100" value="{{.BarRPS}}"></meter> <strong>{{printf "%.0f" .R.RPS}}</strong></td>
+      <td class="barcol"><meter class="lat" min="0" max="100" value="{{.BarP50}}"></meter> {{msf .R.P50}} ms</td>
+      <td>{{msf .R.P95}} ms</td>
+      <td>{{bytes .AvgBytes}}</td>
+      <td>{{pct .R.SuccessRate}}</td>
+      {{else}}<td colspan="5" class="hint">{{if .IsCurrent}}test en cours…{{else}}en attente{{end}}</td>{{end}}
+    </tr>
+    {{end}}
+    </tbody>
+  </table>
+  </div>
+</section>
+{{end}}
+{{end}}
+{{end}}

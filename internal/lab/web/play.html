@@ -1,0 +1,135 @@
+{{define "content"}}
+{{with .Data}}
+<section class="intro"><h1>Bac à sable</h1>
+<p>Compose une transformation : le résultat, ses mesures et l'URL signée s'affichent.</p></section>
+{{if not .Images}}<p class="empty">Aucune image : envoie-en une depuis la galerie.</p>{{else}}
+{{$f := .Image.Rel}}
+<nav class="quick" aria-label="Démos rapides">
+  <span>Démos visages :</span>
+  <a href="/play?f={{$f}}&amp;w=1000&amp;fd=on">Encadrer les visages</a>
+  <a href="/play?f={{$f}}&amp;w=256&amp;h=256&amp;fc=0.4&amp;fcl=on">Avatar (visage principal)</a>
+  <a href="/play?f={{$f}}&amp;w=400&amp;h=500&amp;fc=0.8">Portrait serré</a>
+  <a href="/play?f={{$f}}&amp;w=600&amp;h=300&amp;g=face">Bannière centrée sur les visages</a>
+  <a href="/play?f={{$f}}&amp;w=1000&amp;bf=12">Flouter les visages</a>
+  <a href="/play?f={{$f}}&amp;w=1000&amp;pf=16">Pixelliser les visages</a>
+</nav>
+<div class="play">
+  <form class="opts" method="get" action="/play">
+    <label>Image
+      <select name="f">{{$cur := .Image.Rel}}{{range .Images}}<option {{if eq .Rel $cur}}selected{{end}}>{{.Rel}}</option>{{end}}</select>
+    </label>
+
+    <fieldset><legend>Taille et cadrage</legend>
+      <div class="row">
+        <label>Largeur <input type="number" name="w" min="0" max="4000" value="{{or (.Q.Get "w") "800"}}"></label>
+        <label>Hauteur <input type="number" name="h" min="0" max="4000" value="{{.Q.Get "h"}}"></label>
+      </div>
+      <label>Mode
+        <select name="rt">{{$v := .Q.Get "rt"}}
+          <option value="fit" {{if eq $v "fit"}}selected{{end}}>fit — image entière, tient dans la boîte</option>
+          <option value="fill" {{if eq $v "fill"}}selected{{end}}>fill — remplit la boîte et recadre</option>
+          <option value="force" {{if eq $v "force"}}selected{{end}}>force — déforme aux dimensions</option>
+          <option value="auto" {{if eq $v "auto"}}selected{{end}}>auto</option>
+        </select>
+      </label>
+      <label>Centrage du recadrage
+        <select name="g">{{$v := .Q.Get "g"}}
+          <option value="">centre</option>
+          <option value="face" {{if eq $v "face"}}selected{{end}}>sur les visages (sans zoom)</option>
+          <option value="sm" {{if eq $v "sm"}}selected{{end}}>smart — zone la plus intéressante</option>
+          <option value="no" {{if eq $v "no"}}selected{{end}}>haut</option>
+          <option value="so" {{if eq $v "so"}}selected{{end}}>bas</option>
+          <option value="we" {{if eq $v "we"}}selected{{end}}>gauche</option>
+          <option value="ea" {{if eq $v "ea"}}selected{{end}}>droite</option>
+          <option value="nowe" {{if eq $v "nowe"}}selected{{end}}>haut gauche</option>
+          <option value="noea" {{if eq $v "noea"}}selected{{end}}>haut droite</option>
+          <option value="sowe" {{if eq $v "sowe"}}selected{{end}}>bas gauche</option>
+          <option value="soea" {{if eq $v "soea"}}selected{{end}}>bas droite</option>
+          <option value="fp" {{if eq $v "fp"}}selected{{end}}>point focal (x, y ci-dessous)</option>
+        </select>
+      </label>
+      <p class="hint">Un centrage <em>déplace</em> le cadre sans zoomer (mode <em>fill</em>, carré si une seule dimension).
+      Si le cadre garde déjà presque toute l'image, l'effet est faible : pour un plan serré sur un visage,
+      utilise <em>Zoom sur les visages</em> ci-dessous.</p>
+      <div class="row">
+        <label>Point focal x (0–1) <input type="number" step="0.05" min="0" max="1" name="fx" value="{{or (.Q.Get "fx") "0.5"}}"></label>
+        <label>Point focal y (0–1) <input type="number" step="0.05" min="0" max="1" name="fy" value="{{or (.Q.Get "fy") "0.5"}}"></label>
+      </div>
+    </fieldset>
+
+    <fieldset><legend>Recadrage préalable de la source</legend>
+      <div class="row">
+        <label>Largeur <input type="number" step="any" min="0" name="cw" placeholder="px ou 0–1" value="{{.Q.Get "cw"}}"></label>
+        <label>Hauteur <input type="number" step="any" min="0" name="ch" placeholder="px ou 0–1" value="{{.Q.Get "ch"}}"></label>
+      </div>
+      <label>Ancrage
+        <select name="cg">{{$v := .Q.Get "cg"}}<option value="">centre</option>
+          <option value="face" {{if eq $v "face"}}selected{{end}}>visages</option><option value="sm" {{if eq $v "sm"}}selected{{end}}>smart</option>
+          <option value="no" {{if eq $v "no"}}selected{{end}}>haut</option><option value="so" {{if eq $v "so"}}selected{{end}}>bas</option>
+          <option value="we" {{if eq $v "we"}}selected{{end}}>gauche</option><option value="ea" {{if eq $v "ea"}}selected{{end}}>droite</option>
+        </select>
+      </label>
+      <p class="hint">0.5 = la moitié de l'image ; au-delà de 1 = pixels. Appliqué avant le redimensionnement.</p>
+    </fieldset>
+
+    <fieldset><legend>Visages</legend>
+      <label>Zoom sur les visages — marge
+        <select name="fc">{{$v := .Q.Get "fc"}}<option value="">désactivé</option>
+          <option value="0.2" {{if eq $v "0.2"}}selected{{end}}>0.2 — très serré</option>
+          <option value="0.4" {{if eq $v "0.4"}}selected{{end}}>0.4 — portrait</option>
+          <option value="0.8" {{if eq $v "0.8"}}selected{{end}}>0.8 — buste</option>
+          <option value="1.5" {{if eq $v "1.5"}}selected{{end}}>1.5 — large</option>
+        </select>
+      </label>
+      <label class="check"><input type="checkbox" name="fcl" {{if .Q.Get "fcl"}}checked{{end}}> Seulement le visage principal</label>
+      <label class="check"><input type="checkbox" name="fd" {{if .Q.Get "fd"}}checked{{end}}> Encadrer les visages détectés</label>
+      <div class="row">
+        <label>Flouter les visages <input type="number" step="1" name="bf" min="0" max="50" placeholder="0" value="{{.Q.Get "bf"}}"></label>
+        <label>Pixelliser les visages <input type="number" name="pf" min="0" max="100" placeholder="0" value="{{.Q.Get "pf"}}"></label>
+      </div>
+    </fieldset>
+
+    <fieldset><legend>Effets et sortie</legend>
+      <div class="row">
+        <label>Flou <input type="number" step="0.5" name="bl" min="0" max="50" value="{{.Q.Get "bl"}}"></label>
+        <label>Netteté <input type="number" step="0.1" name="sh" min="0" max="5" value="{{.Q.Get "sh"}}"></label>
+        <label>Pixels <input type="number" name="pix" min="0" max="100" value="{{.Q.Get "pix"}}"></label>
+      </div>
+      <div class="row">
+        <label>Rotation
+          <select name="rot">{{$v := .Q.Get "rot"}}<option value="">0°</option>
+            <option {{if eq $v "90"}}selected{{end}}>90</option><option {{if eq $v "180"}}selected{{end}}>180</option><option {{if eq $v "270"}}selected{{end}}>270</option>
+          </select>
+        </label>
+        <label>Format
+          <select name="fmt">{{$v := .Q.Get "fmt"}}<option value="">identique</option>
+            <option {{if eq $v "auto"}}selected{{end}}>auto</option><option {{if eq $v "webp"}}selected{{end}}>webp</option>
+            <option {{if eq $v "avif"}}selected{{end}}>avif</option><option {{if eq $v "jxl"}}selected{{end}}>jxl</option>
+            <option {{if eq $v "jpeg"}}selected{{end}}>jpeg</option><option {{if eq $v "png"}}selected{{end}}>png</option>
+            <option {{if eq $v "gif"}}selected{{end}}>gif</option><option {{if eq $v "tiff"}}selected{{end}}>tiff</option>
+          </select>
+        </label>
+        <label>Qualité <input type="number" name="q" min="0" max="100" placeholder="défaut" value="{{.Q.Get "q"}}"></label>
+      </div>
+    </fieldset>
+    <button type="submit">Appliquer</button>
+  </form>
+  <div class="out">
+    {{with .Result}}
+      {{if .Err}}<div class="err">{{.Err}}</div>{{else}}<img src="{{.URL}}" alt="résultat">{{end}}
+      <div class="badges">
+        <span class="b fmt">{{.Format}}</span><span class="b">{{.Size}}</span><span class="b">{{bytes .Bytes}}</span>
+        <span class="b">{{pct .Ratio}} de la source</span><span class="b time">{{ms .ProcMs}} serveur</span>
+        {{if ge .Faces 0}}<span class="b face">{{.Faces}} visage(s) détecté(s)</span>{{end}}
+      </div>
+      <label class="copy">URL signée
+        <input readonly value="{{.URL}}" id="signed">
+        <button type="button" data-copy="signed">Copier</button>
+      </label>
+    {{end}}
+    <p class="hint">Options appliquées : <code>{{.Opts}}</code></p>
+  </div>
+</div>
+{{end}}
+{{end}}
+{{end}}

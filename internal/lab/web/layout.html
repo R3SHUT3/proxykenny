@@ -1,0 +1,26 @@
+{{define "layout"}}<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{.Title}} · proxykenny lab</title>
+{{if .Refresh}}<meta http-equiv="refresh" content="{{.Refresh}}">{{end}}
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="/">proxykenny <span>lab</span></a>
+  <nav>
+    <a href="/" {{if eq .Active "index"}}class="on"{{end}}>Galerie</a>
+    <a href="/play" {{if eq .Active "play"}}class="on"{{end}}>Bac à sable</a>
+    <a href="/bench" {{if eq .Active "bench"}}class="on"{{end}}>Bancs d'essai</a>
+    {{if .Grafana}}<a href="{{.Grafana}}" target="_blank" rel="noopener">Grafana ↗</a>{{end}}
+  </nav>
+</header>
+<main>
+{{if .Flash}}<p class="flash">{{.Flash}}</p>{{end}}
+{{template "content" .}}
+</main>
+<script src="/static/app.js"></script>
+</body>
+</html>{{end}}

@@ -1,0 +1,13 @@
+# Tests à chaque push et pull request : gofmt, go vet, staticcheck, tests (tous formats, visages), benchmarks
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tests (image de test Docker)
+        run: docker build --target test .

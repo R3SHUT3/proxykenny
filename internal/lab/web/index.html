@@ -1,0 +1,25 @@
+{{define "content"}}
+<section class="intro">
+  <h1>Galerie</h1>
+  <p>Choisis une image pour comparer toutes les transformations, ou envoie la tienne (JPEG, PNG, HEIC, AVIF, WebP, JPEG XL, GIF, TIFF, SVG, PDF, PSD…).</p>
+  <form class="upload" method="post" action="/upload" enctype="multipart/form-data">
+    <label class="drop" id="drop">
+      <input type="file" name="file" accept="image/*,.heic,.heif,.jxl,.psd,.pdf,.svg" required>
+      <span>Dépose une image ici ou <u>choisis un fichier</u></span>
+    </label>
+    <button type="submit">Envoyer</button>
+  </form>
+</section>
+{{if .Data}}
+<div class="grid">
+  {{range .Data}}
+  <a class="card" href="/image?f={{.Rel}}">
+    <img loading="lazy" src="{{url "rs:fill:480:320/g:sm/f:auto" .Rel}}" alt="{{.Rel}}">
+    <div class="meta"><strong>{{.Rel}}</strong><span>{{bytes .Bytes}}</span></div>
+  </a>
+  {{end}}
+</div>
+{{else}}
+<p class="empty">Aucune image pour l'instant : envoie-en une ci-dessus.</p>
+{{end}}
+{{end}}
