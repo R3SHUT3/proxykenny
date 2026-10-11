@@ -12,6 +12,11 @@ Go + [libvips](https://www.libvips.org/) (via govips), détection de visages ave
   (503 au-delà), délais, blocage des IP internes (SSRF), conteneur en lecture seule, sans privilège, non-root.
 - **Observable** : métriques Prometheus sur `:8081/metrics`, en-tête `Server-Timing` sur chaque réponse.
 
+## Documentation
+
+- **[API](docs/API.md)** : adresses, en-têtes, codes d'erreur, signature en JavaScript, Python, PHP.
+- **[Back-office (lab)](docs/BACK-OFFICE.md)** : lancement, réglages, pages, bancs d'essai.
+
 ## Architecture
 
 ```
